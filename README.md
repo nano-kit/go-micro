@@ -1,49 +1,62 @@
-# Go Micro [![License](https://img.shields.io/:license-apache-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Go.Dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square)](https://pkg.go.dev/github.com/micro/go-micro?tab=doc) [![Travis CI](https://api.travis-ci.org/micro/go-micro.svg?branch=master)](https://travis-ci.org/micro/go-micro) [![Go Report Card](https://goreportcard.com/badge/micro/go-micro)](https://goreportcard.com/report/github.com/micro/go-micro) 
+# Go Micro [![License](https://img.shields.io/:license-apache-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![Go.Dev reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat-square)](https://pkg.go.dev/github.com/micro/go-micro?tab=doc) [![Travis CI](https://api.travis-ci.org/micro/go-micro.svg?branch=master)](https://travis-ci.org/micro/go-micro) [![Go Report Card](https://goreportcard.com/badge/micro/go-micro)](https://goreportcard.com/report/github.com/micro/go-micro)
 
 Go Micro is a framework for distributed systems development.
 
+Go Micro 在一系列的 Golang 微服务框架中，是生产环境成熟度最好的。它也被我们用来实现和支撑了百万级同时在线用户的业务。衡量生产环境成熟度有以下这些标准，
+
+* 服务治理能力，具体来说就是
+  * 发布部署，管理服务上下线和生命周期
+  * 服务注册与发现，有一个全局的地方能管控所有的服务
+  * 负载均衡，以灵活的策略来调用下游服务的多个实例
+  * 可观测性，我调用谁、谁调用我、监控（Metrics）、日志（Logging）、调用追踪（Trace）
+  * 流量管理，灰度发布、蓝绿发布、A/B测试
+  * 安全，对其他服务的访问进行认证与鉴权
+  * 配置中心，下发配置实时生效
+
+这个仓库，以 Go Micro v2.9.1 为基准。在这个 go-micro/v2 稳定版的基础上，维持初心，保持架构，增加功能，修复 Bug。
+
 ## Overview
 
-Go Micro provides the core requirements for distributed systems development including RPC and Event driven communication. 
-The **Micro** philosophy is sane defaults with a pluggable architecture. We provide defaults to get you started quickly 
-but everything can be easily swapped out. 
+Go Micro provides the core requirements for distributed systems development including RPC and Event driven communication.
+The **Micro** philosophy is sane defaults with a pluggable architecture. We provide defaults to get you started quickly
+but everything can be easily swapped out.
 
 ## Features
 
 Go Micro abstracts away the details of distributed systems. Here are the main features.
 
-- **Authentication** - Auth is built in as a first class citizen. Authentication and authorization enable secure 
-zero trust networking by providing every service an identity and certificates. This additionally includes rule 
+- **Authentication** - Auth is built in as a first class citizen. Authentication and authorization enable secure
+zero trust networking by providing every service an identity and certificates. This additionally includes rule
 based access control.
 
-- **Dynamic Config** - Load and hot reload dynamic config from anywhere. The config interface provides a way to load application 
+- **Dynamic Config** - Load and hot reload dynamic config from anywhere. The config interface provides a way to load application
 level config from any source such as env vars, file, etcd. You can merge the sources and even define fallbacks.
 
-- **Data Storage** - A simple data store interface to read, write and delete records. It includes support for memory, file and 
+- **Data Storage** - A simple data store interface to read, write and delete records. It includes support for memory, file and
 CockroachDB by default. State and persistence becomes a core requirement beyond prototyping and Micro looks to build that into the framework.
 
-- **Service Discovery** - Automatic service registration and name resolution. Service discovery is at the core of micro service 
-development. When service A needs to speak to service B it needs the location of that service. The default discovery mechanism is 
+- **Service Discovery** - Automatic service registration and name resolution. Service discovery is at the core of micro service
+development. When service A needs to speak to service B it needs the location of that service. The default discovery mechanism is
 multicast DNS (mdns), a zeroconf system.
 
-- **Load Balancing** - Client side load balancing built on service discovery. Once we have the addresses of any number of instances 
-of a service we now need a way to decide which node to route to. We use random hashed load balancing to provide even distribution 
-across the services and retry a different node if there's a problem. 
+- **Load Balancing** - Client side load balancing built on service discovery. Once we have the addresses of any number of instances
+of a service we now need a way to decide which node to route to. We use random hashed load balancing to provide even distribution
+across the services and retry a different node if there's a problem.
 
-- **Message Encoding** - Dynamic message encoding based on content-type. The client and server will use codecs along with content-type 
-to seamlessly encode and decode Go types for you. Any variety of messages could be encoded and sent from different clients. The client 
+- **Message Encoding** - Dynamic message encoding based on content-type. The client and server will use codecs along with content-type
+to seamlessly encode and decode Go types for you. Any variety of messages could be encoded and sent from different clients. The client
 and server handle this by default. This includes protobuf and json by default.
 
 - **gRPC Transport** - gRPC based request/response with support for bidirectional streaming. We provide an abstraction for synchronous communication. A request made to a service will be automatically resolved, load balanced, dialled and streamed.
 
-- **Async Messaging** - PubSub is built in as a first class citizen for asynchronous communication and event driven architectures. 
+- **Async Messaging** - PubSub is built in as a first class citizen for asynchronous communication and event driven architectures.
 Event notifications are a core pattern in micro service development. The default messaging system is a HTTP event message broker.
 
-- **Synchronization** - Distributed systems are often built in an eventually consistent manner. Support for distributed locking and 
+- **Synchronization** - Distributed systems are often built in an eventually consistent manner. Support for distributed locking and
 leadership are built in as a Sync interface. When using an eventually consistent database or scheduling use the Sync interface.
 
-- **Pluggable Interfaces** - Go Micro makes use of Go interfaces for each distributed system abstraction. Because of this these interfaces 
-are pluggable and allows Go Micro to be runtime agnostic. You can plugin any underlying technology. Find plugins in 
+- **Pluggable Interfaces** - Go Micro makes use of Go interfaces for each distributed system abstraction. Because of this these interfaces
+are pluggable and allows Go Micro to be runtime agnostic. You can plugin any underlying technology. Find plugins in
 [github.com/micro/go-plugins](https://github.com/micro/go-plugins).
 
 ## Getting Started
