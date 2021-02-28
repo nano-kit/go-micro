@@ -152,11 +152,11 @@ func serveWebsocket(ctx context.Context, w http.ResponseWriter, r *http.Request,
 			// read backend response body
 			buf, err := rsp.Read()
 			if err != nil {
-				// wants to avoid import  grpc/status.Status
-				if strings.Contains(err.Error(), "context canceled") {
+				if err == io.EOF {
 					return
 				}
-				if err == io.EOF {
+				// wants to avoid import  grpc/status.Status
+				if strings.Contains(err.Error(), "context canceled") {
 					return
 				}
 				if logger.V(logger.ErrorLevel, logger.DefaultLogger) {
@@ -194,6 +194,9 @@ func writeLoop(rw io.ReadWriter, stream client.Stream) {
 		default:
 			buf, op, err := wsutil.ReadClientData(rw)
 			if err != nil {
+				if err == io.EOF {
+					return
+				}
 				if wserr, ok := err.(wsutil.ClosedError); ok {
 					switch wserr.Code {
 					case ws.StatusGoingAway:
