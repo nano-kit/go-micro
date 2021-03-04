@@ -21,11 +21,18 @@ var (
 	// DefaultTable when none is specified
 	DefaultTable = "micro"
 	// DefaultDir is the default directory for bbolt files
-	DefaultDir = filepath.Join(os.TempDir(), "micro", "store")
+	DefaultDir = filepath.Join(homeDir(), ".microstore")
 
 	// bucket used for data storage
 	dataBucket = "data"
 )
+
+func homeDir() string {
+	if dir, err := os.UserHomeDir(); err == nil {
+		return dir
+	}
+	return os.TempDir()
+}
 
 // NewStore returns a memory store
 func NewStore(opts ...store.Option) store.Store {
