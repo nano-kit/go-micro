@@ -10,6 +10,7 @@ import (
 	"github.com/micro/go-micro/v2/debug/stats"
 	"github.com/micro/go-micro/v2/debug/trace"
 	"github.com/micro/go-micro/v2/errors"
+	"github.com/micro/go-micro/v2/logger"
 	"github.com/micro/go-micro/v2/metadata"
 	"github.com/micro/go-micro/v2/server"
 )
@@ -192,6 +193,8 @@ func AuthHandler(fn func() auth.Auth) server.HandlerWrapper {
 			// Extract the token if present. Note: if noop is being used
 			// then the token can be blank without erroring
 			var account *auth.Account
+			var token string
+			var err error
 			if header, ok := metadata.Get(ctx, "Authorization"); ok {
 				// Ensure the correct scheme is being used
 				if !strings.HasPrefix(header, auth.BearerScheme) {
@@ -199,7 +202,8 @@ func AuthHandler(fn func() auth.Auth) server.HandlerWrapper {
 				}
 
 				// Strip the prefix and inspect the resulting token
-				account, _ = a.Inspect(strings.TrimPrefix(header, auth.BearerScheme))
+				token = strings.TrimPrefix(header, auth.BearerScheme)
+				account, err = a.Inspect(token)
 			}
 
 			// Extract the namespace header
@@ -207,6 +211,9 @@ func AuthHandler(fn func() auth.Auth) server.HandlerWrapper {
 			if !ok {
 				ns = a.Options().Namespace
 				ctx = metadata.Set(ctx, "Micro-Namespace", ns)
+			}
+			if logger.V(logger.DebugLevel, logger.DefaultLogger) {
+				logger.Debugf("inspect: auth=[%v], namespace=%s, token=%q, account=%+v, err=%v", a, ns, token, account, err)
 			}
 
 			// Check the issuer matches the services namespace. TODO: Stop allowing go.micro to access
@@ -223,7 +230,7 @@ func AuthHandler(fn func() auth.Auth) server.HandlerWrapper {
 			}
 
 			// Verify the caller has access to the resource
-			err := a.Verify(account, res, auth.VerifyContext(ctx))
+			err = a.Verify(account, res, auth.VerifyContext(ctx))
 			if err != nil && account != nil {
 				return errors.Forbidden(req.Service(), "Forbidden call made to %v:%v by %v", req.Service(), req.Endpoint(), account.ID)
 			} else if err != nil {

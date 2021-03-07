@@ -11,6 +11,7 @@ import (
 	"github.com/micro/go-micro/v2/auth/token"
 	"github.com/micro/go-micro/v2/auth/token/jwt"
 	"github.com/micro/go-micro/v2/client"
+	"github.com/micro/go-micro/v2/logger"
 )
 
 // svc is the service implementation of the Auth interface
@@ -134,6 +135,9 @@ func (s *svc) Verify(acc *auth.Account, res *auth.Resource, opts ...auth.VerifyO
 
 	rs, err := s.Rules(auth.RulesContext(options.Context))
 	if err != nil {
+		if logger.V(logger.DebugLevel, logger.DefaultLogger) {
+			logger.Debugf("can not get rules: %v", err)
+		}
 		return err
 	}
 
