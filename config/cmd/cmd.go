@@ -69,6 +69,7 @@ import (
 	// stores
 	memStore "github.com/micro/go-micro/v2/store/memory"
 	svcStore "github.com/micro/go-micro/v2/store/service"
+	sqlStore "github.com/micro/go-micro/v2/store/sqlite"
 
 	// tracers
 	// jTracer "github.com/micro/go-micro/v2/debug/trace/jaeger"
@@ -372,6 +373,7 @@ var (
 	DefaultStores = map[string]func(...store.Option) store.Store{
 		"memory":  memStore.NewStore,
 		"service": svcStore.NewStore,
+		"sqlite":  sqlStore.NewStore,
 	}
 
 	DefaultTracers = map[string]func(...trace.Option) trace.Tracer{
