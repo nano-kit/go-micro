@@ -1,6 +1,7 @@
 # Develop tools
 /.vscode/
 /.idea/
+*.iml
 
 # Binaries for programs and plugins
 *.exe
