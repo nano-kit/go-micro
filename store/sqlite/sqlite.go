@@ -388,10 +388,11 @@ func (s *sqlStore) initDB(database, table string) (db *sql.DB, err error) {
 		}
 	}()
 
-	// create table
+	// Create table. NOTE: key is compared case-independent, using the same definition of "case independence"
+	// that SQLite uses internally when comparing identifiers.
 	_, err = db.Exec(fmt.Sprintf(`CREATE TABLE IF NOT EXISTS %s
 	(
-		key TEXT NOT NULL,
+		key TEXT NOT NULL COLLATE NOCASE,
 		value BLOB,
 		metadata TEXT,
 		expiry TIMESTAMP,
@@ -401,7 +402,9 @@ func (s *sqlStore) initDB(database, table string) (db *sql.DB, err error) {
 		return nil, errors.Wrap(err, "Couldn't create table")
 	}
 
-	// create index
+	// Create index for key. The default collating sequence is the collating sequence defined for that column
+	// in the CREATE TABLE statement. It is used to improve ReadPrefix performance.
+	// https://www.sqlite.org/optoverview.html#the_like_optimization
 	_, err = db.Exec(fmt.Sprintf(`CREATE INDEX IF NOT EXISTS "%s" ON %s ("key");`, "key_index_"+table, table))
 	if err != nil {
 		return nil, err
