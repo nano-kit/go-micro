@@ -152,3 +152,41 @@ func TestSqlStoreReInit(t *testing.T) {
 		t.Error("two database reuse one db handle")
 	}
 }
+
+func TestSqlStoreList(t *testing.T) {
+	sqlStore := NewStore(
+		store.Database("testlist"),
+	)
+	defer cleanup("testlist", sqlStore)
+
+	if err := sqlStore.Init(); err != nil {
+		t.Fatal(err)
+	}
+
+	sqlStore.Write(&store.Record{Key: "foo", Value: []byte("bar")})
+	sqlStore.Write(&store.Record{Key: "aaa", Value: []byte("bbb"), Expiry: 5 * time.Second})
+	sqlStore.Write(&store.Record{Key: "aaaa", Value: []byte("bbb"), Expiry: 5 * time.Second})
+	sqlStore.Write(&store.Record{Key: "aaaaa", Value: []byte("bbb"), Expiry: 5 * time.Second})
+	results, err := sqlStore.List(store.ListPrefix("a"))
+	if err != nil {
+		t.Error(err)
+	}
+	if len(results) != 3 {
+		t.Fatal("Results should have returned 3 records")
+	}
+	results, err = sqlStore.List()
+	if err != nil {
+		t.Error(err)
+	}
+	if len(results) != 4 {
+		t.Fatal("Results should have returned 4 records")
+	}
+	time.Sleep(6 * time.Second)
+	results, err = sqlStore.List(store.ListPrefix("a"))
+	if err != nil {
+		t.Error(err)
+	}
+	if len(results) != 0 {
+		t.Fatal("Results should have returned 0 records")
+	}
+}
