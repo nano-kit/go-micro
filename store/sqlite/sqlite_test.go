@@ -116,8 +116,10 @@ func cleanup(db string, s store.Store) {
 }
 
 func TestSqlStoreReInit(t *testing.T) {
-	s := NewStore(store.Table("aaa"))
-	defer cleanup(DefaultDatabase, s)
+	db1 := "testreinit"
+	db2 := "testtest"
+	s := NewStore(store.Database(db1), store.Table("aaa"))
+	defer cleanup(db1, s)
 
 	s.Init(store.Table("bbb"))
 	if s.Options().Table != "bbb" {
@@ -127,27 +129,27 @@ func TestSqlStoreReInit(t *testing.T) {
 	if len(ss.databases) != 1 {
 		t.Error("Init ditn't clear last db handle")
 	}
-	err := s.Write(&store.Record{Key: "foo"}, store.WriteTo(DefaultDatabase, "ccc"))
+	err := s.Write(&store.Record{Key: "foo"}, store.WriteTo(db1, "ccc"))
 	if err != nil {
 		t.Error(err)
 	}
 	if len(ss.databases) != 2 {
 		t.Error("new table ccc didn't mark")
 	}
-	bbb := ss.databases[DefaultDatabase+":"+"bbb"]
-	ccc := ss.databases[DefaultDatabase+":"+"ccc"]
+	bbb := ss.databases[db1+":"+"bbb"]
+	ccc := ss.databases[db1+":"+"ccc"]
 	if bbb == nil || ccc == nil || bbb != ccc {
 		t.Error("two table can not reuse one db handle")
 	}
-	err = s.Write(&store.Record{Key: "foo"}, store.WriteTo("testtest", "ccc"))
+	err = s.Write(&store.Record{Key: "foo"}, store.WriteTo(db2, "ccc"))
 	if err != nil {
 		t.Error(err)
 	}
-	defer cleanup("testtest", s)
+	defer cleanup(db2, s)
 	if len(ss.databases) != 3 {
 		t.Error("new database testtest table ccc didn't mark")
 	}
-	ccc1 := ss.databases["testtest"+":"+"ccc"]
+	ccc1 := ss.databases[db2+":"+"ccc"]
 	if ccc1 == nil || ccc1 == bbb || ccc1 == ccc {
 		t.Error("two database reuse one db handle")
 	}
