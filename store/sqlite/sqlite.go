@@ -30,9 +30,8 @@ var (
 	re = regexp.MustCompile("[^a-zA-Z0-9]+")
 
 	statements = map[string]string{
-		"list":       "SELECT key, metadata, expiry FROM %s;",
-		"listMany":   "SELECT key, metadata, expiry FROM %s WHERE key LIKE $1;",
-		"listOffset": "SELECT key, metadata, expiry FROM %s WHERE key LIKE $1 ORDER BY key DESC LIMIT $2 OFFSET $3;",
+		"list":       "SELECT key, expiry FROM %s WHERE key LIKE $1;",
+		"listOffset": "SELECT key, expiry FROM %s WHERE key LIKE $1 ORDER BY key DESC LIMIT $2 OFFSET $3;",
 		"read":       "SELECT key, value, metadata, expiry FROM %s WHERE key = $1;",
 		"readMany":   "SELECT key, value, metadata, expiry FROM %s WHERE key LIKE $1;",
 		"readOffset": "SELECT key, value, metadata, expiry FROM %s WHERE key LIKE $1 ORDER BY key DESC LIMIT $2 OFFSET $3;",
@@ -152,51 +151,55 @@ func (s *sqlStore) List(opts ...store.ListOption) ([]string, error) {
 		return nil, err
 	}
 
-	if options.Prefix != "" || options.Suffix != "" {
-		return s.list(db, options)
-	}
+	var rows *sql.Rows
 
-	st, err := s.prepare(db, options.Database, options.Table, "list")
-	if err != nil {
-		return nil, err
-	}
-	defer st.Close()
+	pattern := options.Prefix + "%" + options.Suffix
+	if options.Limit != 0 {
+		st, err := s.prepare(db, options.Database, options.Table, "listOffset")
+		if err != nil {
+			return nil, err
+		}
+		defer st.Close()
 
-	rows, err := st.Query()
+		rows, err = st.Query(pattern, options.Limit, options.Offset)
+	} else {
+		st, err := s.prepare(db, options.Database, options.Table, "list")
+		if err != nil {
+			return nil, err
+		}
+		defer st.Close()
+
+		rows, err = st.Query(pattern)
+	}
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
 		return nil, err
 	}
+
 	defer rows.Close()
 
 	var keys []string
 	var timehelper sql.NullTime
 
 	for rows.Next() {
-		record := &store.Record{}
-		metadata := make(Metadata)
+		var key string
 
-		if err := rows.Scan(&record.Key, &metadata, &timehelper); err != nil {
+		if err := rows.Scan(&key, &timehelper); err != nil {
 			return keys, err
 		}
-
-		// set the metadata
-		record.Metadata = toMetadata(&metadata)
 
 		if timehelper.Valid {
 			if timehelper.Time.Before(time.Now()) {
 				// record has expired
-				go s.Delete(record.Key)
+				go s.Delete(key)
 			} else {
-				record.Expiry = time.Until(timehelper.Time)
-				keys = append(keys, record.Key)
+				keys = append(keys, key)
 			}
 		} else {
-			keys = append(keys, record.Key)
+			keys = append(keys, key)
 		}
-
 	}
 	rowErr := rows.Close()
 	if rowErr != nil {
@@ -206,6 +209,7 @@ func (s *sqlStore) List(opts ...store.ListOption) ([]string, error) {
 	if err := rows.Err(); err != nil {
 		return keys, err
 	}
+
 	return keys, nil
 }
 
@@ -532,81 +536,4 @@ func (s *sqlStore) configure() error {
 
 	s.databases[k] = db
 	return nil
-}
-
-// list with options
-func (s *sqlStore) list(db *sql.DB, options store.ListOptions) ([]string, error) {
-	pattern := "%"
-	if options.Prefix != "" {
-		pattern = options.Prefix + pattern
-	}
-	if options.Suffix != "" {
-		pattern = pattern + options.Suffix
-	}
-
-	var rows *sql.Rows
-	var err error
-
-	if options.Limit != 0 {
-		st, err := s.prepare(db, options.Database, options.Table, "listOffset")
-		if err != nil {
-			return nil, err
-		}
-		defer st.Close()
-
-		rows, err = st.Query(pattern, options.Limit, options.Offset)
-	} else {
-		st, err := s.prepare(db, options.Database, options.Table, "listMany")
-		if err != nil {
-			return nil, err
-		}
-		defer st.Close()
-
-		rows, err = st.Query(pattern)
-	}
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return []string{}, nil
-		}
-		return []string{}, errors.Wrap(err, "sqlStore.list failed")
-	}
-
-	defer rows.Close()
-
-	var keys []string
-	var timehelper sql.NullTime
-
-	for rows.Next() {
-		record := &store.Record{}
-		metadata := make(Metadata)
-
-		if err := rows.Scan(&record.Key, &metadata, &timehelper); err != nil {
-			return keys, err
-		}
-
-		// set the metadata
-		record.Metadata = toMetadata(&metadata)
-
-		if timehelper.Valid {
-			if timehelper.Time.Before(time.Now()) {
-				// record has expired
-				go s.Delete(record.Key)
-			} else {
-				record.Expiry = time.Until(timehelper.Time)
-				keys = append(keys, record.Key)
-			}
-		} else {
-			keys = append(keys, record.Key)
-		}
-	}
-	rowErr := rows.Close()
-	if rowErr != nil {
-		// transaction rollback or something
-		return keys, rowErr
-	}
-	if err := rows.Err(); err != nil {
-		return keys, err
-	}
-
-	return keys, nil
 }
