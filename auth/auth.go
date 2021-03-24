@@ -4,6 +4,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -114,6 +115,11 @@ type Rule struct {
 	// Priority the rule should take when verifying a request, the higher the value the sooner the
 	// rule will be applied
 	Priority int32
+}
+
+func (r *Rule) String() string {
+	return fmt.Sprintf("&{ID:%s Scope:%s Resource:%+v Access:%v Priority:%d}",
+		r.ID, r.Scope, r.Resource, r.Access, r.Priority)
 }
 
 type accountKey struct{}

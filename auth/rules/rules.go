@@ -53,10 +53,10 @@ func Verify(rules []*auth.Rule, acc *auth.Account, res *auth.Resource) error {
 	for _, rule := range filteredRules {
 		// a blank scope indicates the rule applies to everyone, even nil accounts
 		if rule.Scope == auth.ScopePublic && rule.Access == auth.AccessDenied {
-			debug(rule, acc, false)
+			debug(rule, acc, res, false)
 			return auth.ErrForbidden
 		} else if rule.Scope == auth.ScopePublic && rule.Access == auth.AccessGranted {
-			debug(rule, acc, true)
+			debug(rule, acc, res, true)
 			return nil
 		}
 
@@ -67,25 +67,25 @@ func Verify(rules []*auth.Rule, acc *auth.Account, res *auth.Resource) error {
 
 		// this rule applies to any account
 		if rule.Scope == auth.ScopeAccount && rule.Access == auth.AccessDenied {
-			debug(rule, acc, false)
+			debug(rule, acc, res, false)
 			return auth.ErrForbidden
 		} else if rule.Scope == auth.ScopeAccount && rule.Access == auth.AccessGranted {
-			debug(rule, acc, true)
+			debug(rule, acc, res, true)
 			return nil
 		}
 
 		// if the account has the necessary scope
 		if include(acc.Scopes, rule.Scope) && rule.Access == auth.AccessDenied {
-			debug(rule, acc, false)
+			debug(rule, acc, res, false)
 			return auth.ErrForbidden
 		} else if include(acc.Scopes, rule.Scope) && rule.Access == auth.AccessGranted {
-			debug(rule, acc, true)
+			debug(rule, acc, res, true)
 			return nil
 		}
 	}
 
 	// if no rules matched then return forbidden
-	debug(&auth.Rule{}, acc, false)
+	debug(&auth.Rule{}, acc, res, false)
 	return auth.ErrForbidden
 }
 
@@ -100,12 +100,12 @@ func include(slice []string, val string) bool {
 	return false
 }
 
-func debug(rule *auth.Rule, acc *auth.Account, ok bool) {
+func debug(rule *auth.Rule, acc *auth.Account, res *auth.Resource, ok bool) {
 	if logger.V(logger.DebugLevel, logger.DefaultLogger) {
 		status := "ok"
 		if !ok {
 			status = "block"
 		}
-		logger.Debugf("verify %s: rule=%+v, resource=%+v, account=%+v", status, rule, rule.Resource, acc)
+		logger.Debugf("verify %s: rule=%+v, resource=%+v, account=%+v", status, rule, res, acc)
 	}
 }
