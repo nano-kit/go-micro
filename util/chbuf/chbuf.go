@@ -8,6 +8,7 @@
 package chbuf
 
 import (
+	"fmt"
 	"log"
 	"time"
 )
@@ -45,15 +46,11 @@ Loop:
 			if !ok {
 				break Loop
 			}
-			if b.Logger != nil {
-				b.Logger.Printf("%v <- %v", event, e)
-			}
+			b.log("%v <- %v", event, e)
 			event = event.Merge(e)
 			if n++; n >= b.Cap {
 				out <- event
-				if b.Logger != nil {
-					b.Logger.Printf("block out <- %v", event)
-				}
+				b.log("block out <- %v", event)
 				event = b.NewEvent()
 				timerCh = nil
 				outCh = nil
@@ -61,9 +58,7 @@ Loop:
 				continue
 			}
 			if timerCh == nil {
-				if b.Logger != nil {
-					b.Logger.Printf("start timer %v", b.Wait)
-				}
+				b.log("start timer %v", b.Wait)
 				timer.Reset(b.Wait)
 				timerCh = timer.C
 			}
@@ -71,9 +66,7 @@ Loop:
 			outCh = out
 			timerCh = nil
 		case outCh <- event:
-			if b.Logger != nil {
-				b.Logger.Printf("out <- %v", event)
-			}
+			b.log("out <- %v", event)
 			event = b.NewEvent()
 			n = 0
 			outCh = nil
@@ -82,10 +75,14 @@ Loop:
 
 	if n > 0 {
 		out <- event
-		if b.Logger != nil {
-			b.Logger.Printf("final out <- %v", event)
-		}
+		b.log("final out <- %v", event)
 	}
 	close(out)
 	timer.Stop()
+}
+
+func (b *ChanBuf) log(format string, v ...interface{}) {
+	if b.Logger != nil {
+		b.Logger.Output(2, fmt.Sprintf(format, v...))
+	}
 }

@@ -17,7 +17,7 @@ func (m Message) Merge(other Event) Event {
 }
 
 func TestChannelBuffering(t *testing.T) {
-	logger := log.New(os.Stdout, "", log.Lmicroseconds)
+	logger := log.New(os.Stdout, "", log.Lmicroseconds|log.Lshortfile)
 	b := ChanBuf{
 		NewEvent: func() Event { return Message{} },
 		Wait:     400 * time.Millisecond,
