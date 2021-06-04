@@ -16,6 +16,7 @@ import (
 	"github.com/micro/go-micro/v2/client/selector"
 	raw "github.com/micro/go-micro/v2/codec/bytes"
 	"github.com/micro/go-micro/v2/errors"
+	"github.com/micro/go-micro/v2/logger"
 	"github.com/micro/go-micro/v2/metadata"
 	"github.com/micro/go-micro/v2/registry"
 	pnet "github.com/micro/go-micro/v2/util/net"
@@ -472,6 +473,8 @@ func (g *grpcClient) Call(ctx context.Context, req client.Request, rsp interface
 			// if the call succeeded lets bail early
 			if err == nil {
 				return nil
+			} else if logger.V(logger.DebugLevel, logger.DefaultLogger) {
+				logger.Debugf("call %q at try %d failed: %v", req.Service()+"/"+req.Method(), i, err)
 			}
 
 			retry, rerr := callOpts.Retry(ctx, req, i, err)
