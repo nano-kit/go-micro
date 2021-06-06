@@ -159,12 +159,13 @@ func (h *rpcHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// handle X-Forwarded-For
 	var (
 		clientIP, ipList string
-		err error
+		err              error
 	)
 	if ipList, _, err = net.SplitHostPort(r.RemoteAddr); err == nil {
 		if prior, ok := r.Header["X-Forwarded-For"]; ok {
 			ipList = strings.Join(prior, ", ") + ", " + ipList
 		}
+		r.Header.Set("X-Forwarded-For", ipList)
 		clientIP = strings.SplitN(ipList, ",", 2)[0]
 	}
 
