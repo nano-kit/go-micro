@@ -87,6 +87,14 @@ func serveWebsocket(ctx context.Context, w http.ResponseWriter, r *http.Request,
 		}
 	}()
 
+	// For convenient rpc over websocket, we expect the first message a client
+	// sent should be something like authentication, instead of specifying the
+	// authentication information in a GET query string parameters.
+	// See (1) func requestPayload comment
+	//     (2) https://stackoverflow.com/questions/4361173/http-headers-in-websockets-client-api
+	noDeadline := time.Time{}
+	// Set the read deadline to prevent from DOS attacks.
+	conn.SetReadDeadline(time.Now().Add(5 * time.Second))
 	payload, op, err = wsutil.ReadClientData(rw)
 	if err != nil {
 		if logger.V(logger.ErrorLevel, logger.DefaultLogger) {
@@ -94,6 +102,7 @@ func serveWebsocket(ctx context.Context, w http.ResponseWriter, r *http.Request,
 		}
 		return
 	}
+	conn.SetReadDeadline(noDeadline)
 
 	var request interface{}
 	if !bytes.Equal(payload, []byte(`{}`)) {
