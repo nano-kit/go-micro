@@ -5,6 +5,7 @@ package autocert
 import (
 	"crypto/tls"
 	"net"
+	"net/http"
 	"os"
 
 	"github.com/micro/go-micro/v2/api/server/acme"
@@ -15,14 +16,8 @@ import (
 // autoCertACME is the ACME provider from golang.org/x/crypto/acme/autocert
 type autocertProvider struct{}
 
-// Listen implements acme.Provider
-func (a *autocertProvider) Listen(hosts ...string) (net.Listener, error) {
-	return autocert.NewListener(hosts...), nil
-}
-
-// TLSConfig returns a new tls config
-func (a *autocertProvider) TLSConfig(hosts ...string) (*tls.Config, error) {
-	// create a new manager
+// create a new manager
+func (a *autocertProvider) newManager(hosts []string) *autocert.Manager {
 	m := &autocert.Manager{
 		Prompt: autocert.AcceptTOS,
 	}
@@ -37,10 +32,31 @@ func (a *autocertProvider) TLSConfig(hosts ...string) (*tls.Config, error) {
 	} else {
 		m.Cache = autocert.DirCache(dir)
 	}
+	return m
+}
+
+// Listen implements acme.Provider
+func (a *autocertProvider) Listen(hosts ...string) (net.Listener, error) {
+	m := a.newManager(hosts)
+	ln := &listener{
+		conf: m.TLSConfig(),
+	}
+	ln.tcpListener, ln.tcpListenErr = net.Listen("tcp", ":443")
+	if ln.tcpListenErr == nil {
+		go func() {
+			logger.Fatal(http.ListenAndServe(":80", m.HTTPHandler(nil)))
+		}()
+	}
+	return ln, ln.tcpListenErr
+}
+
+// TLSConfig returns a new tls config
+func (a *autocertProvider) TLSConfig(hosts ...string) (*tls.Config, error) {
+	m := a.newManager(hosts)
 	return m.TLSConfig(), nil
 }
 
-// New returns an autocert acme.Provider
+// NewProvider returns an autocert acme.Provider
 func NewProvider() acme.Provider {
 	return &autocertProvider{}
 }
