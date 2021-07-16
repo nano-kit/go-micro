@@ -6,7 +6,6 @@ replace github.com/imdario/mergo => github.com/imdario/mergo v0.3.8
 
 require (
 	github.com/BurntSushi/toml v0.3.1
-	github.com/alangpierce/go-forceexport v0.0.0-20160317203124-8f1d6941cd75 // indirect
 	github.com/bitly/go-simplejson v0.5.0
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/bwmarrin/discordgo v0.20.2
@@ -34,7 +33,6 @@ require (
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/golang/protobuf v1.4.2
 	github.com/google/uuid v1.1.1
-	github.com/gorilla/handlers v1.4.2
 	github.com/gorilla/websocket v1.4.1 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.1.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
@@ -47,8 +45,6 @@ require (
 	github.com/kr/pretty v0.1.0
 	github.com/lib/pq v1.3.0
 	github.com/lucas-clemente/quic-go v0.21.1
-	github.com/marten-seemann/chacha20 v0.2.0 // indirect
-	github.com/marten-seemann/qtls v0.4.1 // indirect
 	github.com/micro/cli/v2 v2.1.2
 	github.com/miekg/dns v1.1.27
 	github.com/minio/highwayhash v1.0.0

@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/micro/go-micro/v2/api/server"
 	"github.com/micro/go-micro/v2/api/server/cors"
@@ -93,7 +94,11 @@ func (s *httpServer) Start() error {
 	s.mtx.Unlock()
 
 	go func() {
-		if err := http.Serve(l, s.mux); err != nil {
+		srv := &http.Server{
+			Handler:     s.mux,
+			ReadTimeout: 5 * time.Second,
+		}
+		if err := srv.Serve(l); err != nil {
 			// temporary fix
 			//logger.Fatal(err)
 		}
