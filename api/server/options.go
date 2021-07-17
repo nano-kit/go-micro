@@ -3,6 +3,7 @@ package server
 import (
 	"crypto/tls"
 	"net/http"
+	"time"
 
 	"github.com/micro/go-micro/v2/api/resolver"
 	"github.com/micro/go-micro/v2/api/server/acme"
@@ -11,14 +12,15 @@ import (
 type Option func(o *Options)
 
 type Options struct {
-	EnableACME   bool
-	EnableCORS   bool
-	ACMEProvider acme.Provider
-	EnableTLS    bool
-	ACMEHosts    []string
-	TLSConfig    *tls.Config
-	Resolver     resolver.Resolver
-	Wrappers     []Wrapper
+	EnableACME       bool
+	EnableCORS       bool
+	ACMEProvider     acme.Provider
+	EnableTLS        bool
+	ACMEHosts        []string
+	TLSConfig        *tls.Config
+	Resolver         resolver.Resolver
+	Wrappers         []Wrapper
+	KeepaliveTimeout time.Duration
 }
 
 type Wrapper func(h http.Handler) http.Handler
@@ -68,5 +70,12 @@ func TLSConfig(t *tls.Config) Option {
 func Resolver(r resolver.Resolver) Option {
 	return func(o *Options) {
 		o.Resolver = r
+	}
+}
+
+// KeepaliveTimeout sets a timeout during which an idle keepalive connection to an upstream server will stay open.
+func KeepaliveTimeout(t time.Duration) Option {
+	return func(o *Options) {
+		o.KeepaliveTimeout = t
 	}
 }

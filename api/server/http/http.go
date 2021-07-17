@@ -95,8 +95,10 @@ func (s *httpServer) Start() error {
 
 	go func() {
 		srv := &http.Server{
-			Handler:     s.mux,
-			ReadTimeout: 5 * time.Second,
+			Handler:      s.mux,
+			ReadTimeout:  15 * time.Second,
+			WriteTimeout: 15 * time.Second,
+			IdleTimeout:  s.idleTimeout(),
 		}
 		if err := srv.Serve(l); err != nil {
 			// temporary fix
@@ -120,4 +122,12 @@ func (s *httpServer) Stop() error {
 
 func (s *httpServer) String() string {
 	return "http"
+}
+
+func (s *httpServer) idleTimeout() time.Duration {
+	if s.opts.KeepaliveTimeout != 0 {
+		return s.opts.KeepaliveTimeout
+	}
+
+	return time.Minute
 }
