@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/micro/go-micro/v2/codec"
 	"github.com/micro/go-micro/v2/logger"
+	"github.com/micro/go-micro/v2/logger/zap"
 	"github.com/micro/go-micro/v2/registry"
 	signalutil "github.com/micro/go-micro/v2/util/signal"
 )
@@ -149,7 +150,10 @@ var (
 
 	// NewServer creates a new server
 	NewServer func(...Option) Server = newRpcServer
-	log                              = logger.NewHelper(logger.DefaultLogger).WithFields(map[string]interface{}{"service": "server"})
+	log                              = zap.NewHelper(zap.NewLogger(
+		logger.WithLevel(logger.DefaultLogger.Options().Level),
+		logger.WithFields(map[string]interface{}{"service": "server"}),
+	))
 )
 
 // DefaultOptions returns config options for the default service
