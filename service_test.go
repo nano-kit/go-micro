@@ -76,13 +76,16 @@ func TestService(t *testing.T) {
 	// start test server
 	service := testService(ctx, &wg, "test.service")
 
+	// use a channel to hand off the error
+	errs := make(chan error, 1)
+
 	go func() {
 		// wait for service to start
 		wg.Wait()
 
 		// make a test call
 		if err := testRequest(ctx, service.Client(), "test.service"); err != nil {
-			t.Fatal(err)
+			errs <- err
 		}
 
 		// shutdown the service
@@ -91,6 +94,12 @@ func TestService(t *testing.T) {
 
 	// start service
 	if err := service.Run(); err != nil {
+		t.Fatal(err)
+	}
+
+	// wait for any goroutine error
+	close(errs)
+	for err := range errs {
 		t.Fatal(err)
 	}
 }

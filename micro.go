@@ -68,7 +68,7 @@ type Event interface {
 	Publish(ctx context.Context, msg interface{}, opts ...client.PublishOption) error
 }
 
-// Type alias to satisfy the deprecation
+// Publisher is a type alias to satisfy the deprecation
 type Publisher = Event
 
 type Option func(*Options)
@@ -106,7 +106,8 @@ func NewEvent(topic string, c client.Client) Event {
 	return &event{c, topic}
 }
 
-// Deprecated: NewPublisher returns a new Publisher
+// NewPublisher returns a new Publisher
+// Deprecated: use NewEvent instead.
 func NewPublisher(topic string, c client.Client) Event {
 	return NewEvent(topic, c)
 }

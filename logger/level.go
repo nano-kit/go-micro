@@ -63,7 +63,7 @@ func GetLevel(levelStr string) (Level, error) {
 	case FatalLevel.String():
 		return FatalLevel, nil
 	}
-	return InfoLevel, fmt.Errorf("Unknown Level String: '%s', defaulting to InfoLevel", levelStr)
+	return InfoLevel, fmt.Errorf("unknown level string: '%s', defaulting to info", levelStr)
 }
 
 func Info(args ...interface{}) {
@@ -116,7 +116,7 @@ func Fatalf(template string, args ...interface{}) {
 	os.Exit(1)
 }
 
-// Returns true if the given level is at or lower the current logger level
+// V returns true if the given level is at or lower the current logger level
 func V(lvl Level, log Logger) bool {
 	l := DefaultLogger
 	if log != nil {
