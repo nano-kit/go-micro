@@ -9,6 +9,7 @@ import (
 	"net/textproto"
 	"strconv"
 	"strings"
+	"time"
 
 	jsonpatch "github.com/evanphx/json-patch/v5"
 	"github.com/micro/go-micro/v2/api"
@@ -197,7 +198,7 @@ func (h *rpcHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	md["Host"] = r.Host
 	md["Method"] = r.Method
 	// get canonical headers
-	for k, _ := range r.Header {
+	for k := range r.Header {
 		// may be need to get all values for key like r.Header.Values() provide in go 1.14
 		md[textproto.CanonicalMIMEHeaderKey(k)] = r.Header.Get(k)
 	}
@@ -217,7 +218,16 @@ func (h *rpcHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// create strategy
+	var callOptions []client.CallOption
 	so := selector.WithStrategy(strategy(clientIP, service.Services))
+	callOptions = append(callOptions, client.WithSelectOption(so))
+
+	// handle the Request-Timeout header, to enable http long polling
+	// https://tools.ietf.org/id/draft-thomson-hybi-http-timeout-00.html
+	requestTimeout, _ := strconv.ParseInt(r.Header.Get("Request-Timeout"), 10, 32)
+	if requestTimeout > 0 {
+		callOptions = append(callOptions, client.WithRequestTimeout(time.Duration(requestTimeout)*time.Second))
+	}
 
 	// walk the standard call path
 	// get payload
@@ -249,7 +259,7 @@ func (h *rpcHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		)
 
 		// make the call
-		if err := c.Call(cx, req, response, client.WithSelectOption(so)); err != nil {
+		if err := c.Call(cx, req, response, callOptions...); err != nil {
 			writeError(w, r, err)
 			return
 		}
@@ -284,7 +294,7 @@ func (h *rpcHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			client.WithContentType(ct),
 		)
 		// make the call
-		if err := c.Call(cx, req, &response, client.WithSelectOption(so)); err != nil {
+		if err := c.Call(cx, req, &response, callOptions...); err != nil {
 			writeError(w, r, err)
 			return
 		}
@@ -301,7 +311,7 @@ func (h *rpcHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	writeResponse(w, r, rsp)
 }
 
-func (rh *rpcHandler) String() string {
+func (h *rpcHandler) String() string {
 	return "rpc"
 }
 
