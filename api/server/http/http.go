@@ -94,10 +94,20 @@ func (s *httpServer) Start() error {
 	s.mtx.Unlock()
 
 	go func() {
+		// The default timeout value in a browser is 300 seconds, but most
+		// network infrastructures include proxies and servers whose timeouts
+		// are not that long.
+		// Several experiments have shown success with timeouts as high as 120
+		// seconds, but generally 30 seconds is a safer value.  Therefore,
+		// vendors of network equipment wishing to be compatible with the HTTP
+		// long polling mechanism are advised to implement a timeout
+		// substantially greater than 30 seconds.
+		//
+		// https://datatracker.ietf.org/doc/html/rfc6202#section-5.5
 		srv := &http.Server{
 			Handler:      s.mux,
-			ReadTimeout:  15 * time.Second,
-			WriteTimeout: 15 * time.Second,
+			ReadTimeout:  120 * time.Second,
+			WriteTimeout: 120 * time.Second,
 			IdleTimeout:  s.idleTimeout(),
 		}
 		if err := srv.Serve(l); err != nil {
@@ -129,5 +139,5 @@ func (s *httpServer) idleTimeout() time.Duration {
 		return s.opts.KeepaliveTimeout
 	}
 
-	return time.Minute
+	return 300 * time.Second
 }
