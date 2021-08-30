@@ -213,7 +213,7 @@ func AuthHandler(fn func() auth.Auth) server.HandlerWrapper {
 				ctx = metadata.Set(ctx, "Micro-Namespace", ns)
 			}
 			if logger.V(logger.DebugLevel, logger.DefaultLogger) {
-				logger.Debugf("inspect: auth=[%v], namespace=%s, token=%q, account=%+v, err=%v", a, ns, token, account, err)
+				logger.Debugf("inspect %q: auth=[%v], namespace=%s, token=%q, account=%+v, err=%v", req.Service()+"/"+req.Method(), a, ns, token, account, err)
 			}
 
 			// Check the issuer matches the services namespace. TODO: Stop allowing go.micro to access
