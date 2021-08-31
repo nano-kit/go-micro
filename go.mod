@@ -69,6 +69,6 @@ require (
 	google.golang.org/grpc v1.26.0
 	google.golang.org/protobuf v1.23.0
 	gopkg.in/telegram-bot-api.v4 v4.6.4
-	modernc.org/sqlite v1.10.0
+	modernc.org/sqlite v1.10.8
 	sigs.k8s.io/yaml v1.1.0 // indirect
 )
