@@ -47,6 +47,8 @@ func (b *Buffer) Put(v interface{}) {
 
 	// trim if bigger than size required
 	if len(b.vals) > b.size {
+		// https://stackoverflow.com/questions/28432658/does-go-garbage-collect-parts-of-slices
+		b.vals[0] = nil // let the trimmed value gc
 		b.vals = b.vals[1:]
 	}
 
