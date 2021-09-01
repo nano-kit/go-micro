@@ -168,6 +168,7 @@ func (h *rpcHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		r.Header.Set("X-Forwarded-For", ipList)
 		clientIP = strings.SplitN(ipList, ",", 2)[0]
+		r.Header.Set("X-Real-Ip", clientIP)
 	}
 
 	// entrance debugging
