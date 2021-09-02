@@ -249,3 +249,15 @@ func RulesContext(ctx context.Context) RulesOption {
 		o.Context = ctx
 	}
 }
+
+type InspectOptions struct {
+	Context context.Context
+}
+
+type InspectOption func(o *InspectOptions)
+
+func InspectContext(ctx context.Context) InspectOption {
+	return func(o *InspectOptions) {
+		o.Context = ctx
+	}
+}

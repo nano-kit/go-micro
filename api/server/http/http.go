@@ -10,6 +10,7 @@ import (
 
 	"github.com/micro/go-micro/v2/api/server"
 	"github.com/micro/go-micro/v2/api/server/cors"
+	"github.com/micro/go-micro/v2/api/server/wrapper"
 	"github.com/micro/go-micro/v2/logger"
 )
 
@@ -64,6 +65,9 @@ func (s *httpServer) Handle(path string, handler http.Handler) {
 
 	// wrap with logger
 	//handler = handlers.CombinedLoggingHandler(os.Stdout, handler)
+
+	// wrap with trace
+	handler = wrapper.TraceHandler(handler)
 
 	s.mux.Handle(path, handler)
 }

@@ -35,7 +35,7 @@ type Auth interface {
 	// Verify an account has access to a resource using the rules
 	Verify(acc *Account, res *Resource, opts ...VerifyOption) error
 	// Inspect a token
-	Inspect(token string) (*Account, error)
+	Inspect(token string, opts ...InspectOption) (*Account, error)
 	// Token generated using refresh token or credentials
 	Token(opts ...TokenOption) (*Token, error)
 	// Grant access to a resource

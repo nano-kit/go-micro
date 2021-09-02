@@ -111,7 +111,7 @@ func (j *jwt) Rules(opts ...auth.RulesOption) ([]*auth.Rule, error) {
 	return j.rules, nil
 }
 
-func (j *jwt) Inspect(token string) (*auth.Account, error) {
+func (j *jwt) Inspect(token string, opts ...auth.InspectOption) (*auth.Account, error) {
 	return j.jwt.Inspect(token)
 }
 

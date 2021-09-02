@@ -145,7 +145,7 @@ func (s *svc) Verify(acc *auth.Account, res *auth.Resource, opts ...auth.VerifyO
 }
 
 // Inspect a token
-func (s *svc) Inspect(token string) (*auth.Account, error) {
+func (s *svc) Inspect(token string, opts ...auth.InspectOption) (*auth.Account, error) {
 	// try to decode JWT locally and fall back to srv if an error occurs
 	if len(strings.Split(token, ".")) == 3 && s.jwt != nil {
 		return s.jwt.Inspect(token)
@@ -153,7 +153,15 @@ func (s *svc) Inspect(token string) (*auth.Account, error) {
 
 	// the token is not a JWT or we do not have the keys to decode it,
 	// fall back to the auth service
-	rsp, err := s.auth.Inspect(context.TODO(), &pb.InspectRequest{Token: token})
+	var options auth.InspectOptions
+	for _, o := range opts {
+		o(&options)
+	}
+	if options.Context == nil {
+		options.Context = context.TODO()
+	}
+
+	rsp, err := s.auth.Inspect(options.Context, &pb.InspectRequest{Token: token})
 	if err != nil {
 		return nil, err
 	}

@@ -82,7 +82,7 @@ func (n *noop) Verify(acc *Account, res *Resource, opts ...VerifyOption) error {
 }
 
 // Inspect a token
-func (n *noop) Inspect(token string) (*Account, error) {
+func (n *noop) Inspect(token string, opts ...InspectOption) (*Account, error) {
 	// Because this token has already been inspected at API gateway
 	// try to decode JWT locally and do not verify signature
 	if len(strings.Split(token, ".")) == 3 {
