@@ -73,7 +73,7 @@ func (a *testAuth) Verify(acc *auth.Account, res *auth.Resource, opts ...auth.Ve
 	return a.verifyError
 }
 
-func (a *testAuth) Inspect(token string) (*auth.Account, error) {
+func (a *testAuth) Inspect(token string, opts ...auth.InspectOption) (*auth.Account, error) {
 	a.inspectCount = a.inspectCount + 1
 	return a.inspectAccount, nil
 }

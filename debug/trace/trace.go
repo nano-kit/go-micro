@@ -87,7 +87,7 @@ func (n *noop) Init(...Option) error {
 }
 
 func (n *noop) Start(ctx context.Context, name string) (context.Context, *Span) {
-	return nil, nil
+	return context.Background(), new(Span)
 }
 
 func (n *noop) Finish(*Span) error {
