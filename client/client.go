@@ -109,7 +109,7 @@ var (
 	// DefaultPoolSize sets the connection pool size
 	DefaultPoolSize = 100
 	// DefaultPoolTTL sets the connection pool ttl
-	DefaultPoolTTL = time.Minute
+	DefaultPoolTTL = time.Duration(1<<63 - 1) // maxDuration
 
 	// NewClient returns a new client
 	NewClient func(...Option) Client = newRpcClient

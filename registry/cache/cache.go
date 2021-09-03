@@ -49,7 +49,7 @@ type cache struct {
 }
 
 var (
-	DefaultTTL = time.Minute
+	DefaultTTL = time.Duration(1<<63 - 1) // maxDuration
 )
 
 func backoff(attempts int) time.Duration {
