@@ -104,10 +104,27 @@ func TestMergeContext(t *testing.T) {
 			},
 			want: Metadata{"Foo": "bar", "Sumo": "demo2"},
 		},
+		{
+			name: "matching key, overwrite true",
+			args: args{
+				existing:  Metadata{"Foo": "bar", "Sumo": "demo"},
+				append:    Metadata{"Sumo": "demo2", "Foo": "bar2"},
+				overwrite: true,
+			},
+			want: Metadata{"Foo": "bar2", "Sumo": "demo2"},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got, _ := FromContext(MergeContext(NewContext(context.TODO(), tt.args.existing), tt.args.append, tt.args.overwrite)); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("MergeContext() = %v, want %v", got, tt.want)
+			}
+			ctx := NewContext(context.TODO(), Metadata{"Foo": "bar", "Sumo": "demo"})
+			ctx = MergeContext(ctx, Metadata{"Sumo": "demo2", "Foo": "bar2"}, true)
+			ctx = MergeContext(ctx, Metadata{"Sumo": "demo3", "Foo": "bar3"}, true)
+			ctx = MergeContext(ctx, Metadata{"Sumo": "demo4", "Foo": "bar4"}, true)
+			ctx = MergeContext(ctx, Metadata{"Sumo": "demo5", "Foo": "bar6"}, true)
+			if got, _ := FromContext(ctx); !reflect.DeepEqual(got, Metadata{"Sumo": "demo5", "Foo": "bar6"}) {
 				t.Errorf("MergeContext() = %v, want %v", got, tt.want)
 			}
 		})

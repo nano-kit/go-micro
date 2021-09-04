@@ -3,6 +3,7 @@ package log
 import (
 	"context"
 	"fmt"
+	"github.com/micro/go-micro/v2/metadata"
 	"io"
 	"io/ioutil"
 	"os"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/micro/go-micro/v2/debug/trace"
+	"github.com/micro/go-micro/v2/logger"
 )
 
 var (
@@ -54,8 +56,19 @@ func (t *Tracer) Start(ctx context.Context, name string) (context.Context, *trac
 	// set parent
 	span.Parent = parentSpanID
 
+	logger.Infof("TRACE %q: trace=%v, span=%v, parent=%v", name, span.Trace, span.Id, span.Parent)
+
 	// return the span
-	return trace.ToContext(ctx, span.Trace, span.Id), span
+	ctx1 := trace.ToContext(ctx, span.Trace, span.Id)
+	if md, ok := metadata.FromContext(ctx1); ok {
+		spanID := md["Micro-Span-Id"]
+		if spanID != span.Id {
+			logger.Infof("TRACE x %q: trace=%v, span=%v, parent=%v, newSpan=%v", name, span.Trace, span.Id, span.Parent, spanID)
+		} else {
+			logger.Infof("TRACE o %q: trace=%v, span=%v, parent=%v, newSpan=%v", name, span.Trace, span.Id, span.Parent, spanID)
+		}
+	}
+	return ctx1, span
 }
 
 func (t *Tracer) Finish(s *trace.Span) error {
