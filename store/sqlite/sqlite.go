@@ -381,7 +381,7 @@ func (s *sqlStore) initDB(database, table string) (db *sql.DB, err error) {
 		// database path
 		dbPath := filepath.Join(dir, fname)
 		// sqlite URI filename
-		dbURI := "file://" + dbPath
+		dbURI := "file:" + dbPath + "?cache=shared"
 
 		// create new db handle
 		newdb, err = sql.Open("sqlite", dbURI)
